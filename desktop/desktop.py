@@ -1,5 +1,6 @@
 import sqlite3 as sq
 import face_recognition as face
+from tkinter import *
 import sys
 import os
 import threading
@@ -9,18 +10,11 @@ import io
 
 Time = 0
 
-def write_to_file(data, filename):
-    with open(filename, 'wb') as file:
-        file.write(data)
-
 def parsing(row, unknown_encoding):
     results = face.compare_faces([row[3]], unknown_encoding)
     if results[0] == True:
-        write_to_file(row[4], "temp.jpg")
-        with open('temp.txt', 'w') as f:
-            f.write(row[2] + "\n")
-            f.write(row[1] + "\n")
-
+        print(row[1])
+        print(row[2])
         print(time.time() - Time)
         sys.exit(0)
 

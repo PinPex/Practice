@@ -4,3 +4,5 @@ database/*.db
 parser/*.jpg
 parser/*.png
 server/__pycache__/*.pyc
+database/images/*.txt
+parser/*.txt
