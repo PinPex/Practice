@@ -1,0 +1,6 @@
+database/images/*.jpg
+database/images/*.png
+database/*.db
+parser/*.jpg
+parser/*.png
+server/__pycache__/*.pyc
