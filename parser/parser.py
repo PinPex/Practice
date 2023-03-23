@@ -16,9 +16,10 @@ def write_to_file(data, filename):
 def parsing(row, unknown_encoding):
     results = face.compare_faces([row[3]], unknown_encoding)
     if results[0] == True:
-        write_to_file(row[4], "temp.jpg")
-        with open('temp.txt', 'w') as f:
+        write_to_file(row[4], "photo.jpg")
+        with open('name.txt', 'w') as f:
             f.write(row[2] + "\n")
+        with open('information.txt', 'w') as f:
             f.write(row[1] + "\n")
 
         print(time.time() - Time)
@@ -48,7 +49,8 @@ if __name__ == "__main__":
     path = str(os.getcwd()) 
     sq.register_adapter(np.ndarray, adapt_array)
     sq.register_converter("array", convert_array)
-    con = sq.connect(path[0:len(path) - 6] + 'database/sqlite_python.db', detect_types=sq.PARSE_DECLTYPES)
+    
+    con = sq.connect(path[:path.rindex('/')] + '/database/sqlite_python.db', detect_types=sq.PARSE_DECLTYPES)
 
     cursor = con.cursor()
     cursor.execute("SELECT * FROM Faces")
@@ -70,3 +72,4 @@ if __name__ == "__main__":
         ]
     for thread in threads:
         thread.start()
+    

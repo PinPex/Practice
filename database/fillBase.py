@@ -88,8 +88,7 @@ def show_database(con):
         records = cursor.fetchall()
         print(len(records))
         for row in records:
-            print(row[1])
-            print(type(row[2]))
+            print(row[2])
 
 #drop_table("Faces")
 #create_table("Faces")

@@ -1,66 +1,68 @@
-import sqlite3 as sq
-import face_recognition as face
-from tkinter import *
 import sys
 import os
-import threading
-import time
-import numpy as np
-import io
+#from PySide6.QtWidgets import *
+from PyQt5 import QtWidgets, uic
+from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog, QLabel, QPushButton, QSizePolicy
+from PyQt5 import QtGui
 
-Time = 0
+class MainWindow(QWidget):
+    label: QLabel
+    label_2: QLabel
+    label_3: QLabel
+    pushButton: QPushButton
+    pushButton_2: QPushButton
+    pushButton_3: QPushButton
+    app: QApplication
+    Window: QWidget
+    num_of_threads: int = 4
+    path_current_photo: str
+    def __init__(self, Window, app) -> None:
+        super().__init__()
+        self.app = app
+        self.Window = Window
+        self.Window.setWindowTitle("Определить человека по фото")
+        self.label = self.Window.label
+        self.label_2 = self.Window.label_2
+        self.label_3 = self.Window.label_3
+        self.label.setScaledContents(True)
+        self.label_2.setScaledContents(True)
+        self.pushButton = self.Window.pushButton
+        self.pushButton_2 = self.Window.pushButton_2
+        self.pushButton_3 = self.Window.pushButton_3
+        self.set_clicker(self.pushButton_3, self.open_file)
+        self.set_clicker(self.pushButton, self.find_human)
 
-def parsing(row, unknown_encoding):
-    results = face.compare_faces([row[3]], unknown_encoding)
-    if results[0] == True:
-        print(row[1])
-        print(row[2])
-        print(time.time() - Time)
-        sys.exit(0)
+    def setLabelImage(self, label: QLabel, filepath):
+        image = QtGui.QImage(filepath)
+        pp = QtGui.QPixmap.fromImage(image.scaled(label.width(), label.height()))
+        label.setPixmap(pp)
+        
+    def show(self) -> None:
+        self.Window.show()
+    def open_file(self):
+        self.path_current_photo = QFileDialog.getOpenFileName(self)[0]
+        self.setLabelImage(self.label, self.path_current_photo)
+    def find_human(self):
+        path = str(os.getcwd()) 
+        os.system("python3 " + path[:path.rindex('/')] + "/parser/parser.py " + self.path_current_photo + 
+                  " " + str(self.num_of_threads))
+        self.setLabelImage(self.label_2, "photo.jpg")
+        with open("name.txt", "r") as f:
+            self.label_3.setText(f.read())
+        os.remove("name.txt")
+        os.remove("information.txt")
+        os.remove("photo.jpg")
 
-def thread_job(records, unknown_encoding, i, num_of_threads):
-    num = int(len(records) / num_of_threads)
-    L = (i) * num
-    R = (i + 1) * num
-    if R < len(records) and i == num_of_threads - 1:
-        R = len(records)
-    for j in range(L, R):
-        parsing(records[j], unknown_encoding)
-    
-def adapt_array(arr):
-    out = io.BytesIO()
-    np.save(out, arr)
-    out.seek(0)
-    return sq.Binary(out.read())
+        
+        
+    def set_clicker(self, pushButton, command) -> None:
+        pushButton.clicked.connect(command)
 
-def convert_array(text):
-    out = io.BytesIO(text)
-    out.seek(0)
-    return np.load(out)
 
 if __name__ == "__main__":
-    path = str(os.getcwd()) 
-    sq.register_adapter(np.ndarray, adapt_array)
-    sq.register_converter("array", convert_array)
-    con = sq.connect(path[0:len(path) - 6] + 'database/sqlite_python.db', detect_types=sq.PARSE_DECLTYPES)
-
-    cursor = con.cursor()
-    cursor.execute("SELECT * FROM Faces")
-    records = cursor.fetchall()
-
-    unknown_image = face.load_image_file(str(sys.argv[1]))
-    unknown_encoding = []
-    if face.face_encodings(unknown_image):
-        unknown_encoding = face.face_encodings(unknown_image)[0]
-    else:
-        print("Error: in unknown photo face not exists")
-        exit()
+    app = QtWidgets.QApplication(sys.argv)
+    window = MainWindow(uic.loadUi("search.ui"), app)
     
-    num_of_threads = int(sys.argv[2])
-    Time = time.time()
-    threads = [
-            threading.Thread(target=thread_job, args=(records, unknown_encoding, i, num_of_threads))
-            for i in range(0, num_of_threads)
-        ]
-    for thread in threads:
-        thread.start()
+    window.show()
+    
+    app.exec()
