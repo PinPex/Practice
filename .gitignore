@@ -1,8 +1,9 @@
-database/images/*.jpg
-database/images/*.png
 database/*.db
-parser/*.jpg
-parser/*.png
 server/__pycache__/*.pyc
 database/images/*.txt
-parser/*.txt
+*.txt
+database/outinput/*
+__pycache__
+*.jpeg
+*.png
+*.jpg
