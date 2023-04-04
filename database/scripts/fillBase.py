@@ -6,7 +6,6 @@ import face_recognition as face
 from PIL import Image
 import numpy as np
 import io
-print(str(os.getcwd()) )
 class Database:
     con: sq.Connection
     def __init__(self) -> None:
@@ -45,6 +44,18 @@ class Database:
                                     (name, about, code, photo) VALUES (?, ?, ?, ?)""", 
                                     (name, about, image_encoding, photo_bin))
         self.con.commit()
+        cursor.close()
+    def double(self):
+
+        cursor = self.con.cursor()
+        cursor.execute("SELECT * FROM Faces")
+        records = cursor.fetchall()
+        for row in records:
+
+            cursor.execute("""INSERT INTO Faces
+                                        (name, about, code, photo) VALUES (?, ?, ?, ?)""", 
+                                        (row[2], row[1], row[3], row[4]))
+            self.con.commit()
         cursor.close()
 
     def delete_sqlite_record(self, dev_id):
