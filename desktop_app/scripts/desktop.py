@@ -1,17 +1,17 @@
 import sys
 import os
+import time
 #from PySide6.QtWidgets import *
 from PyQt5 import uic
-from PyQt5.QtWidgets import QApplication, QWidget, QInputDialog, QLineEdit, QFileDialog, QLabel, QPushButton, QSizePolicy, QMessageBox
-from PyQt5.QtGui import QPixmap, QImage
-from parser.parser import Parsing
-from parser.parser import face
+from PyQt5.QtWidgets import QWidget, QFileDialog, QLabel, QPushButton, QMessageBox
 
-from queue import Queue
+from parser.parser import Parsing
+
 from PyQt5.QtCore import Qt
-from PIL import Image
+from PyQt5.QtGui import QPixmap
+
 sys.path.append("../")
-import time
+
 from database.scripts.fillBase import Database
 
 class Desktop(QWidget):
@@ -34,15 +34,17 @@ class Desktop(QWidget):
         self.label.setScaledContents(True)
         self.label_2.setScaledContents(True)
         self.pushButton = self.Window.pushButton
-        self.pushButton_2 = self.Window.pushButton_2
+        #self.pushButton_2 = self.Window.pushButton_2
         self.pushButton_3 = self.Window.pushButton_3
         self.set_clicker(self.pushButton_3, self.open_file)
         self.set_clicker(self.pushButton, self.find_human)
 
     def setLabelImage(self, label: QLabel, filepath):
-        image = QImage(filepath)
-        pp = QPixmap.fromImage(image.scaled(label.width(), label.height()))
-        label.setPixmap(pp)
+        #label.setScaledContents(True)
+        
+        pixmap = QPixmap(filepath)
+        
+        label.setPixmap(pixmap.scaled(label.size(), Qt.KeepAspectRatio))
     
     def show(self) -> None:
         self.Window.show()
@@ -51,45 +53,27 @@ class Desktop(QWidget):
         self.path_current_photo = QFileDialog.getOpenFileName(self)[0]
         self.setLabelImage(self.label, self.path_current_photo)
     def find_human(self):
-        start = time.time()
 
-        image = QImage(self.path_current_photo)
-        pp = QPixmap(image)
-        pp = pp.scaled(210, 210, aspectRatioMode=Qt.AspectRatioMode.KeepAspectRatioByExpanding) # with some images breaks
-        pp.save("temp3.jpg")
-        
-        bin_face = face.load_image_file("temp3.jpg")
-        print(face.face_locations(bin_face)) #crop in this positions
-        
-        image = Image.open("temp3.jpg")
-        #os.remove("temp3.jpg")
-        tup = face.face_locations(bin_face)[0]
-        print(tup)
-        image = image.crop((tup[3], tup[0], tup[1], tup[2]))
-        image = image.convert('RGB')
-        image.save("temp2.jpg")
-
-        image = QImage("temp2.jpg")
-        #os.remove("temp2.jpg")
-        pp = QPixmap(image)
-        pp = pp.scaled(60, 60, aspectRatioMode=Qt.AspectRatioMode.KeepAspectRatioByExpanding) # with some images breaks
-        
-        pp.save("temp1.jpg")
-
-
-
-        if self.pars.prepare_photo("temp1.jpg") != 1:
+        if self.pars.prepare_photo(self.path_current_photo) != 1:
+            ## Testing with 10 runs
+            #time_ = 0.0
+            #for i in range(10):
+                #start = time.time()
+                #self.pars.main_loop(self.num_of_threads)
+                #time_ += time.time() - start
+            #print(time_ / 10)
+            start = time.time()
             self.pars.main_loop(self.num_of_threads)
+            print(time.time() - start)
             self.pars.write_to_file(self.pars.result[4], "temp.jpg")
             self.setLabelImage(self.label_2, "temp.jpg")
             self.label_3.setText(self.pars.result[2])
             os.remove("temp.jpg")
-            print(time.time() - start)
+            
         else:
             mes = QMessageBox(self)
             mes.show()
             mes.setText(self.pars.error)
-        #os.remove("temp1.jpg")
         
         
 

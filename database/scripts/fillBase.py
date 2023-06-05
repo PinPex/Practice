@@ -6,6 +6,7 @@ import face_recognition as face
 from PIL import Image
 import numpy as np
 import io
+from parser.parser import Parsing
 class Database:
     con: sq.Connection
     def __init__(self) -> None:
@@ -30,19 +31,14 @@ class Database:
             blob_data = file.read()
         return blob_data
 
-
     def insert_blob(self, name: str, about: str, photo: str):
         cursor = self.con.cursor()
-        image = face.load_image_file(photo)
-        image_encoding = []
-        if face.face_encodings(image):
-            image_encoding = face.face_encodings(image)[0]
-        else:
-            print("Error: in known photo face not exists")
+        parser = Parsing()
+        parser.prepare_photo(photo)
         photo_bin = self.convert_to_binary_data(photo)
         cursor.execute("""INSERT INTO Faces
                                     (name, about, code, photo) VALUES (?, ?, ?, ?)""", 
-                                    (name, about, image_encoding, photo_bin))
+                                    (name, about, parser.arr, photo_bin))
         self.con.commit()
         cursor.close()
     def double(self):
